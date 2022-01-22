@@ -31,7 +31,7 @@ void fillrandom(int plot=1) {
       pad2->Draw();
       pad1->cd();
  
-      pad1->SetGridx();
+      pad1->SetGridx(); 
       pad1->SetGridy();
       pad1->GetFrame()->SetBorderMode(-1);
       pad1->GetFrame()->SetBorderSize(5);
