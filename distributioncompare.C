@@ -104,7 +104,7 @@ plots the fitted angular distributions
 of multiple root files to be able to compare them
 and see which one fits best
 */
-void distrocompare()
+void distributioncompare()
 {
     int n1 = 40;     // amount of histograms in the first file
     int n2 = 5000;   // amount of histograms in the second file
