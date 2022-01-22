@@ -1,12 +1,11 @@
 
-
-void muongengaus()
-/* 
-    generates an amount of muons with directions 
+/*
+    generates an amount of muons with directions
     following a gaussian distribution between 2 angles
     and creates the same type of histogram as the measured muons
     so the real muons can be compared to a idealized situation
 */
+void muongengaus()
 {
     int n = 5000;                                         // amount of muons to simulate
     double espread = 0.025;                               // gaussian spread size around the 'real' line
@@ -22,7 +21,7 @@ void muongengaus()
 
     TFile f(fileName.c_str(), "recreate");
 
-    //initializing the random number generator with a seed
+    // initializing the random number generator with a seed
     TRandom *rand = new TRandom(6606601);
 
     for (int i = 0; i <= n; i++)
@@ -31,13 +30,13 @@ void muongengaus()
         string name = "Muon_" + std::to_string(i);
         TH2S *hist = new TH2S(name.c_str(), name.c_str(), resx, 0, dimx, resy, 0, dimy);
 
-        //generating the random direction of the muon
+        // generating the random direction of the muon
         double m; // slope of the muon
         bool c = false;
         while (!c)
         {
             double h = rand->Gaus(0, aspread); // angle of muon in degrees
-            //only continue if the angle is between "minangle" and "maxangle"
+            // only continue if the angle is between "minangle" and "maxangle"
             if (h > minangle && h < maxangle)
             {
                 m = TMath::Tan(h * TMath::DegToRad());
@@ -57,11 +56,12 @@ void muongengaus()
             hist->Fill(x, y);
         }
 
-        //formatting the histogram
+        // formatting the histogram
         hist->SetMarkerColor(8);
         hist->SetMarkerStyle(6);
 
-        //saving the histogram
+        // saving the histogram
         hist->Write();
     }
 }
+

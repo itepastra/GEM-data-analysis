@@ -11,56 +11,43 @@
 #include "TSystem.h"
 #include "TPaveText.h"
 #include "TGraphErrors.h"
-//+[3]*([4]-x)*exp([5]*([4]-x))
 
-void fitADC()
+/*
+this function fits a landau function to each of the histograms of the 32 channels received from the ADC,
+then it plots the location of the peak of the landau, and the reduced chi^2 of the fit
+if all pads are working correctly the peaks should all be similar to eachother.
+*/
+void ADCfitseperate()
 {
-    // initialize arrays for results
-    double MPVlist[32];                       // fit most probable values
-    double MPVerrorlist[32];                  // fit most probable values error
-    double chi2list[32];                      // fit chi2
-    double ndflist[32];                       // fit degrees of freedom
-    std::string fileName = "histos_and.root"; // filename of the rootfile
+    // initialize arrays for fit results
+    double MPVlist[32];      // fit results for most probable values
+    double MPVerrorlist[32]; // fit errors for most probable values
+    double chi2list[32];     // fit chi^2 results
+    double ndflist[32];      // fit number of independent variables
 
-    // create the fit function
-    TF1 *landau = new TF1("landau", "landau(0)", 110, 250); // landau fit function between 110 en 250
-
-    // formatting
-    landau->SetLineWidth(1);
-    landau->SetLineColor(1);
-
-    //set start parameters
-    landau->SetParameters(100, 150, 1);
-    landau->SetParLimits(1, 0.0, 500.0);
+    // create the fit function and set some starting parameters
+    TF1 *g1 = new TF1("landaufunc", "landau", 110, 250);
 
     // opening the file and initializing histograms
-    std::string baseStart = "ADV_values_Channel_"; // name of the histogram before the number
-    std::string names[32];                         // array of the names
+    std::string baseStart = "ADV_values_Channel_";
+    std::string names[32];
+    std::unique_ptr<TH1F> histos[32];
     std::unique_ptr<TFile>
-        file(TFile::Open(fileName.c_str()));
+        file(TFile::Open("histos_and.root"));
     file->ls();
-
-    // create the canvas for the plots
-    TCanvas *channelPlots = new TCanvas(
-        "channelPlots", "Channel Plots");
-
-    channelPlots->SetCanvasSize(4000, 2000);    // make the canvas large
-    channelPlots->SetWindowSize(1000, 1000);    // make the window smaller so scrollbars appear
-    channelPlots->Divide(8, 4, 0.001f, 0.001f); // divide the canvas into an 8 by 4 grid to fit the 32 channels
 
     for (int i = 0; i < 32; i++)
     {
-        channelPlots->cd(i + 1);
-
+        double_t gepar[5];
         names[i] = baseStart + std::to_string(i);
         std::unique_ptr<TH1F> hist(file->Get<TH1F>(names[i].c_str()));
-        landau->SetParameters(100, 150, 1);
 
-        //rebin and fit
+        auto c = new TCanvas();
+        // rebin and fit
         hist->Rebin(4);
-        TFitResultPtr fitR = hist->Fit("landau", "RSE");
+        TFitResultPtr fitR = hist->Fit(g1, "RSE");
 
-        //formatting
+        // formatting
         hist->SetLineColor(i + 50);
         hist->GetXaxis()->SetRangeUser(0, 500);
         hist->GetXaxis()->SetTitle("U [mV]");
@@ -69,11 +56,10 @@ void fitADC()
         hist->SetMarkerStyle(33);
         hist->SetMarkerColor(i + 50);
         hist->SetTitle(("Channel " + std::to_string(i + 1)).c_str());
-        hist->SetStats(false);
 
         hist->DrawCopy("E X0");
 
-        //get fit parameters and errors
+        // get fit parameters and errors
         MPVlist[i] = fitR->Parameter(1);
         MPVerrorlist[i] = fitR->ParError(1);
         chi2list[i] = fitR->Chi2();
@@ -93,8 +79,6 @@ void fitADC()
     // most probable values plot
     TCanvas *cmpv = new TCanvas("cmpv", "most probable values");
     TGraphErrors *mpvgr = new TGraphErrors(n, channels, MPVlist, channelerrors, MPVerrorlist);
-
-    // formatting
     mpvgr->SetMarkerStyle(5);
     mpvgr->SetMarkerColor(9);
     mpvgr->SetTitle("most probable values");
@@ -113,8 +97,6 @@ void fitADC()
     // chi2 plot
     TCanvas *cchi = new TCanvas("cchi", "chi2");
     TGraphErrors *chigr = new TGraphErrors(n, channels, chi2redlist, channelerrors, channelerrors);
-
-    // formatting
     chigr->SetMarkerStyle(33);
     chigr->SetMarkerColor(9);
     chigr->SetTitle("Reduced Chi^2 of fit per channel");

@@ -13,17 +13,21 @@
 #include "TPaveText.h"
 #include "TGraphErrors.h"
 
-void fitmuon2()
+/*
+tries to fit a line through a 2d histogram by calculating a weighted average per column,
+putting those averages in a plot and then fitting a line using the fit function of ROOT.
+The results of the fits are then plotted in a histogram to show the angular distribution according to the program.
+*/
+void fitmuon()
 {
-    int n1 = 40;     // amount of histograms in the first file
-    int n2 = 5000;   // amount of histograms in the second file
-    int n3 = 5000;   // amount of histograms in the third file
-    int resx = 6;    // amount of pads in the x-direction
-    int resy = resx; // amount of pads in the y-direction
-    double dimx = 6; // total detector size in the x-direction
-    double dimy = 6; // total detector size in the y-direction
-    int bins = 39;   // amount of bins to use for the results
-
+    int n = 40;                                           // amount of histograms in the file
+    int resx = 6;                                         // amount of pads in the x-direction
+    int resy = resx;                                      // amount of pads in the y-direction
+    double dimx = 6;                                      // total detector size in the x-direction
+    double dimy = 6;                                      // total detector size in the y-direction
+    int bins = 39;                                        // amount of bins to use for the results
+    std::string filename = "histos_generated_muons.root"; // filename of the
+    std::string baseStart = "Muon_";                      // part of the histogram name before the number
 
     double padsizex = dimx / resx;            // the size per pad in the x-direction
     double padsizey = dimy / resy;            // the size per pad in the y-direction
@@ -34,14 +38,12 @@ void fitmuon2()
 
     TF1 *f1 = new TF1("f1", "[0]*x + [1]");
 
-    std::string baseStart = "Muon_";
     std::unique_ptr<TFile>
-        file(TFile::Open("histos_generated_muons.root"));
-
+        file(TFile::Open(filename.c_str()));
 
     for (int i = 0; i < n; i++)
     {
-        std::string name = baseStart + std::to_string(i + 1);      //name of the n-th histogram in the file
+        std::string name = baseStart + std::to_string(i + 1);      // name of the n-th histogram in the file
         std::unique_ptr<TH2S> hist(file->Get<TH2S>(name.c_str())); // getting the pointer to the histogram with the name above
 
         // reset the parameters of the fit function
@@ -92,10 +94,8 @@ void fitmuon2()
             }
         }
 
-
         auto egr = new TGraphErrors(resx, xs, wvals, xerr, yerr); // TGraphErrors of the weighted averages
         TFitResultPtr fitR;                                       // pointer used to get the data from the fit
-
 
         // every "showevery" muons we plot the histogram with the fit, otherwise we only fit without graphics
         if (showevery > 1 && (i + 1) % showevery == 0)
@@ -115,7 +115,7 @@ void fitmuon2()
         alist[i] = fitR->Parameter(0);
     }
 
-    //create output histogram
+    // create output histogram
     TCanvas *adist = new TCanvas("adist", "angle distribution");
     TH1 *hangle = new TH1I("hangle", "angles", bins, -45, 45);
 

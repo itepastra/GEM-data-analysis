@@ -1,12 +1,11 @@
 
-
-void muongenuni()
 /* 
     generates an amount of muons with directions 
     following a uniform distribution between 2 angles
     and creates the same type of histogram as the measured muons
     so the real muons can be compared to a idealized situation
 */
+void muongenuni()
 {
     int n = 5000;                                       // amount of muons to simulate
     double espread = 0.025;                             // gaussian spread size around the 'real' line
