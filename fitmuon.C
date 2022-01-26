@@ -20,14 +20,15 @@ The results of the fits are then plotted in a histogram to show the angular dist
 */
 void fitmuon()
 {
-    int n = 40;                                           // amount of histograms in the file
-    int resx = 6;                                         // amount of pads in the x-direction
-    int resy = resx;                                      // amount of pads in the y-direction
-    double dimx = 6;                                      // total detector size in the x-direction
-    double dimy = 6;                                      // total detector size in the y-direction
-    int bins = 39;                                        // amount of bins to use for the results
-    std::string filename = "histos_generated_muons.root"; // filename of the
-    std::string baseStart = "Muon_";                      // part of the histogram name before the number
+    int n = 40;                                  // amount of histograms in the file
+    int resx = 6;                                // amount of pads in the x-direction
+    int resy = resx;                             // amount of pads in the y-direction
+    double dimx = 6;                             // total detector size in the x-direction
+    double dimy = 6;                             // total detector size in the y-direction
+    int bins = 29;                               // amount of bins to use for the results
+    std::string filename = "histos_final2.root"; // filename of the
+    std::string baseStart = "Pad_Plane_Event_";  // part of the histogram name before the number
+    int showevery = 1;
 
     double padsizex = dimx / resx;            // the size per pad in the x-direction
     double padsizey = dimy / resy;            // the size per pad in the y-direction
@@ -97,14 +98,20 @@ void fitmuon()
         auto egr = new TGraphErrors(resx, xs, wvals, xerr, yerr); // TGraphErrors of the weighted averages
         TFitResultPtr fitR;                                       // pointer used to get the data from the fit
 
+        gStyle->SetOptStat("emr");
+
         // every "showevery" muons we plot the histogram with the fit, otherwise we only fit without graphics
-        if (showevery > 1 && (i + 1) % showevery == 0)
+        if (showevery > 0 && (i + 1) % showevery == 0)
         {
             auto c = new TCanvas(name.c_str());
 
             hist->DrawCopy();
             fitR = egr->Fit("f1", "SQ");
             egr->Draw("same P");
+
+            TImageDump *imgDump = new TImageDump(("../muon_" + std::to_string(i) + ".png").c_str());
+            c->Paint();
+            imgDump->Close();
             std::cout << i << "     " << fitR->Parameter(0) << "     " << fitR->Parameter(0) * TMath::RadToDeg() << std::endl;
         }
         else
@@ -116,8 +123,8 @@ void fitmuon()
     }
 
     // create output histogram
-    TCanvas *adist = new TCanvas("adist", "angle distribution");
-    TH1 *hangle = new TH1I("hangle", "angles", bins, -45, 45);
+    TCanvas *adist = new TCanvas("adist", "");
+    TH1 *hangle = new TH1I("hangle", "", bins, -45, 45);
 
     // fill output histogram with data
     for (int i = 0; i < n; i++)

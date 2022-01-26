@@ -123,14 +123,14 @@ void fitmuoncompare()
     std::string baseStart2 = "Muon_";            // the name before the number of the histograms in file 2
     std::string baseStart3 = "Muon_";            // the name before the number of the histograms in file 3
 
-    TH1 *hist1 = new TH1D("hist1", "angles", bins, -30, 30); // histogram 1
-    TH1 *hist2 = new TH1D("hist2", "angles", bins, -30, 30); // histogram 2
-    TH1 *hist3 = new TH1D("hist3", "angles", bins, -30, 30); // histogram 3
+    TH1 *hist1 = new TH1D("hist1", "", bins, -30, 30); // histogram 1
+    TH1 *hist2 = new TH1D("hist2", "", bins, -30, 30); // histogram 2
+    TH1 *hist3 = new TH1D("hist3", "", bins, -30, 30); // histogram 3
 
     // filling the histograms with data
-    FitLines(n1, fileName1, baseStart1, resx, resy, dimx, dimy, bins, epsilon, base, hist1);
-    FitLines(n2, fileName2, baseStart2, resx, resy, dimx, dimy, bins, epsilon, base, hist2);
-    FitLines(n3, fileName3, baseStart3, resx, resy, dimx, dimy, bins, epsilon, base, hist3);
+    FitLines(n1, fileName1, baseStart1, resx, resy, dimx, dimy, bins, hist1);
+    FitLines(n2, fileName2, baseStart2, resx, resy, dimx, dimy, bins, hist2);
+    FitLines(n3, fileName3, baseStart3, resx, resy, dimx, dimy, bins, hist3);
 
     // normalizing the histograms so n1 and n2 and n3 can be different
     hist1->Scale(1.0 / n1);
@@ -141,6 +141,9 @@ void fitmuoncompare()
     hist1->SetLineColor(4);
     hist2->SetLineColor(2);
     hist3->SetLineColor(7);
+    hist1->SetLineWidth(2);
+    hist2->SetLineWidth(2);
+    hist3->SetLineWidth(2);
 
     // show all 3 histograms on top of eachother for visual comparison
     TCanvas *adist = new TCanvas("adist", "angle distribution");
@@ -149,6 +152,14 @@ void fitmuoncompare()
     hist2->DrawCopy("hist same c");
     hist3->DrawCopy("hist same c");
 
+    auto legend = new TLegend(0.1,0.7,0.48,0.9);
+    legend->SetHeader("");
+    legend->AddEntry(hist1, "Measurement data");
+    legend->AddEntry(hist2, "Gaussian simulation");
+    legend->AddEntry(hist3, "Uniform simulation");
+    legend->Draw("");
+
+
     // show the 1st histogram divided by the 2nd and 3rd to see the ratio difference
     TCanvas *divadist = new TCanvas("divadist", "divided angle distribution");
 
@@ -156,4 +167,10 @@ void fitmuoncompare()
     hist3->Divide(hist1, hist3, 1, 1, "B");
     hist2->Draw("hist c");
     hist3->Draw("Same hist c");
+
+    auto legend2 = new TLegend(0.1,0.7,0.48,0.9);
+    legend2->SetHeader("");
+    legend2->AddEntry(hist2, "Measurement over gaussian");
+    legend2->AddEntry(hist3, "Measurement over uniform");
+    legend2->Draw("");
 }

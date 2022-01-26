@@ -58,6 +58,9 @@ void ADCfitseperate()
         hist->SetTitle(("Channel " + std::to_string(i + 1)).c_str());
 
         hist->DrawCopy("E X0");
+        TImageDump *imgDump = new TImageDump(("../channel_" + std::to_string(i) + ".png").c_str());
+        c->Paint();
+        imgDump->Close();
 
         // get fit parameters and errors
         MPVlist[i] = fitR->Parameter(1);
